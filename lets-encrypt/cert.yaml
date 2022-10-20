@@ -1,0 +1,11 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: carikatla
+  namespace: carikatla
+spec:
+  secretName: carikatla-cert
+  issuerRef:
+    name: letsencrypt-staging
+  dnsNames:
+  - carikatla.my.id
