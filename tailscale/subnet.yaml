@@ -32,7 +32,7 @@ spec:
               key: AUTH_KEY
               optional: true
         - name: TS_ROUTES
-          value: "10.42.0.0/16,10.43.0.0/16,10.44.0.0/16"
+          value: "29.10.1.0/24"
         securityContext:
           runAsUser: 1000
           runAsGroup: 1000
