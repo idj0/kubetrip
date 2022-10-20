@@ -1,0 +1,10 @@
+[master]
+ct-master ansible_host=103.176.79.185 ansible_user=root
+
+[workers]
+ct-worker-0 ansible_host=103.179.56.243 ansible_user=root
+ct-worker-1 ansible_host=103.31.38.243 ansible_user=root
+ct-worker-2 ansible_host=103.179.57.116 ansible_user=root
+
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3

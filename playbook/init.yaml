@@ -1,0 +1,116 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: enable transparent masquerading
+      shell: modprobe br_netfilter
+
+    - name: update and upgrade packages
+      apt:
+        upgrade: yes
+        update_cache: yes
+
+    - name: install dependencies
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - ca-certificates
+        - curl
+        - gnupg
+        - lsb-release
+        - apt-transport-https
+
+    - name: get release
+      shell: lsb_release -cs
+      register: release
+
+    - name: add docker apt key
+      apt_key:
+        url: https://download.docker.com/linux/debian/gpg
+        state: present
+
+    - name: add docker apt repo
+      apt_repository:
+        repo: deb https://download.docker.com/linux/debian {{ release.stdout }} stable
+        state: present
+        filename: 'docker'
+
+    - name: install docker
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      with_items:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+
+    - name: add kubernetes apt key
+      apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        state: present
+
+    - name: add Kubernetes' APT repository
+      apt_repository:
+        repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+        state: present
+        filename: 'kubernetes'
+
+    - name: install kubelet and kubeadm
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      with_items:
+        - kubelet
+        - kubeadm
+
+    - name: starting docker service
+      service:
+        name: docker
+        state: started
+
+    - name: enabling docker service on startup
+      service:
+        name: docker
+        enabled: yes
+
+    - name: disabling swap
+      shell: |
+        swapoff -a
+        sed -i '/ swap / s/^/#/' /etc/fstab
+
+    - name: change docker to use systemd cgroup drive
+      shell: |
+        echo '{
+          "exec-opts": ["native.cgroupdriver=systemd"]
+        }' > /etc/docker/daemon.json
+        systemctl restart docker
+
+    - name: force systemd to reload config
+      systemd:
+        daemon_reload: yes
+
+    - name: restarting docker service
+      service:
+        name: docker
+        state: restarted
+
+    - name: enabling kubelet service on startup
+      service:
+        name: kubelet
+        enabled: yes
+
+    - name: starting kubelet service
+      service:
+        name: kubelet
+        state: started
+
+- hosts: master
+  become: yes
+  tasks:
+    - name: install kubectl
+      apt:
+        name: kubectl
+        state: present
+        update_cache: yes

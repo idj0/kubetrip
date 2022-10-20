@@ -1,0 +1,40 @@
+- hosts: master
+  become: yes
+  gather_facts: false
+  tasks:
+    - name: create logs directory
+      become: yes
+      become_user: admin
+      file:
+        path: $HOME/logs
+        state: directory
+        mode: 0755
+
+    - name: initialize the cluster
+      shell: kubeadm init --pod-network-cidr=10.0.0.0/22 >> cluster-init.log
+      args:
+        chdir: /home/admin/logs
+        creates: cluster-init.log
+
+    - name: create kubeconfig directory
+      become: yes
+      become_user: admin
+      file:
+        path: $HOME/.kube
+        state: directory
+        mode: 0755
+
+    - name: copy kubeconfig to kubeconfig directory
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: /home/admin/.kube/config
+        remote_src: yes
+        owner: admin
+
+    - name: install pod network
+      become: yes
+      become_user: admin
+      shell: kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
+      args:
+        chdir: $HOME/logs
+        creates: cni-init.log
