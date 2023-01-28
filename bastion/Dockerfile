@@ -11,11 +11,9 @@ RUN apk add --no-cache \
         ip6tables \
   && rm -rf /var/cache/apk/*
 
-COPY ha_template.conf /etc/nginx/templates/ha.conf.template
-COPY proxy_params.conf /etc/nginx/global/
+COPY bastion.conf /etc/nginx/conf.d/
 
-COPY ./50-init-tailscale.sh /docker-entrypoint.d/
-RUN chmod +x /docker-entrypoint.d/50-init-tailscale.sh
+COPY ./init-tailscale.sh /docker-entrypoint.d/
+RUN chmod +x /docker-entrypoint.d/init-tailscale.sh
 
 EXPOSE 8080
-
